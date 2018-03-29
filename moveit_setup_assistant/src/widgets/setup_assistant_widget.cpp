@@ -57,6 +57,7 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/view_manager.h>
 #include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
+#include <rviz/ogre_helpers/qt_widget_ogre_render_window.h>
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
 
 namespace moveit_setup_assistant
@@ -373,9 +374,10 @@ void SetupAssistantWidget::updateTimer()
 void SetupAssistantWidget::loadRviz()
 {
   // Create rviz frame
-  rviz_render_panel_ = new rviz::RenderPanel();
-  rviz_render_panel_->setMinimumWidth(200);
-  rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  auto render_window = new rviz::QtWidgetOgreRenderWindow();
+  rviz_render_panel_ = new rviz::RenderPanel(render_window);
+  render_window->setMinimumWidth(200);
+  render_window->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   rviz_manager_ = new rviz::VisualizationManager(rviz_render_panel_);
   rviz_render_panel_->initialize(rviz_manager_->getSceneManager(), rviz_manager_);
@@ -404,7 +406,7 @@ void SetupAssistantWidget::loadRviz()
 
   // Add Rviz to Planning Groups Widget
   QVBoxLayout* rviz_layout = new QVBoxLayout();
-  rviz_layout->addWidget(rviz_render_panel_);
+  rviz_layout->addWidget(render_window);
   rviz_container_->setLayout(rviz_layout);
 
   // visual / collision buttons
