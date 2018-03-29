@@ -50,6 +50,7 @@
 #include <QString>
 #include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 // Rviz
+#include <rviz/ogre_helpers/qt_widget_ogre_render_window.h>
 #include <rviz/render_panel.h>
 #include <rviz/visualization_manager.h>
 #include <rviz/view_manager.h>
@@ -380,9 +381,10 @@ void SetupAssistantWidget::updateTimer()
 void SetupAssistantWidget::loadRviz()
 {
   // Create rviz frame
-  rviz_render_panel_ = new rviz::RenderPanel();
-  rviz_render_panel_->setMinimumWidth(200);
-  rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  auto render_window = new rviz::QtWidgetOgreRenderWindow();
+  rviz_render_panel_ = new rviz::RenderPanel(render_window);
+  render_window->setMinimumWidth(200);
+  render_window->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   rviz_manager_ = new rviz::VisualizationManager(rviz_render_panel_);
   rviz_render_panel_->initialize(rviz_manager_->getSceneManager(), rviz_manager_);
@@ -410,7 +412,7 @@ void SetupAssistantWidget::loadRviz()
 
   // Add Rviz to Planning Groups Widget
   QHBoxLayout* rviz_layout = new QHBoxLayout();
-  rviz_layout->addWidget(rviz_render_panel_);
+  rviz_layout->addWidget(render_window);
   rviz_container_->setLayout(rviz_layout);
 
   rviz_container_->show();
