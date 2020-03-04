@@ -843,8 +843,6 @@ void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
         // Write joints
         emitter << YAML::Key << "joints";
         {
-          if (controller_it->joints_.size() != 1)
-          {
             emitter << YAML::Value << YAML::BeginSeq;
 
             // Iterate through the joints
@@ -853,13 +851,6 @@ void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
               emitter << joint;
             }
             emitter << YAML::EndSeq;
-          }
-          else
-          {
-            emitter << YAML::Value << YAML::BeginMap;
-            emitter << controller_it->joints_[0];
-            emitter << YAML::EndMap;
-          }
         }
         controller_it = ros_controllers_config_output.erase(controller_it);
         emitter << YAML::EndMap;
