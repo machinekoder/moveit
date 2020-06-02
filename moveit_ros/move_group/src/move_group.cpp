@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <tf2_ros/transform_listener.h>
 #include <moveit/move_group/capability_names.h>
@@ -69,13 +70,13 @@ static const char* DEFAULT_CAPABILITIES[] = {
 class MoveGroupExe
 {
 public:
-  MoveGroupExe(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : node_handle_("~")
+  MoveGroupExe(const moveit_cpp::MoveItCppPtr& moveit_cpp, bool debug) : node_handle_("~")
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
 
-    context_.reset(new MoveGroupContext(psm, allow_trajectory_execution, debug));
+    context_ = std::make_shared<MoveGroupContext>(moveit_cpp, allow_trajectory_execution, debug);
 
     // start the capabilities
     configureCapabilities();
@@ -190,8 +191,9 @@ int main(int argc, char** argv)
   std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>(ros::Duration(10.0));
   std::shared_ptr<tf2_ros::TransformListener> tfl = std::make_shared<tf2_ros::TransformListener>(*tf_buffer, nh);
 
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(
-      new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION, tf_buffer));
+  ros::NodeHandle pnh("~");
+  const auto moveit_cpp = std::make_shared<moveit_cpp::MoveItCpp>(pnh, tf_buffer);
+  const auto planning_scene_monitor = moveit_cpp->getPlanningSceneMonitor();
 
   if (planning_scene_monitor->getPlanningScene())
   {
@@ -207,13 +209,7 @@ int main(int argc, char** argv)
     else
       ROS_INFO("MoveGroup debug mode is OFF");
 
-    printf(MOVEIT_CONSOLE_COLOR_CYAN "Starting planning scene monitors...\n" MOVEIT_CONSOLE_COLOR_RESET);
-    planning_scene_monitor->startSceneMonitor();
-    planning_scene_monitor->startWorldGeometryMonitor();
-    planning_scene_monitor->startStateMonitor();
-    printf(MOVEIT_CONSOLE_COLOR_CYAN "Planning scene monitors started.\n" MOVEIT_CONSOLE_COLOR_RESET);
-
-    move_group::MoveGroupExe mge(planning_scene_monitor, debug);
+    move_group::MoveGroupExe mge(moveit_cpp, debug);
 
     planning_scene_monitor->publishDebugInformation(debug);
 
