@@ -46,7 +46,7 @@
 
 namespace moveit
 {
-namespace planning_interface
+namespace planning
 {
 constexpr char LOGNAME[] = "moveit_cpp";
 constexpr char PLANNING_PLUGIN_PARAM[] = "planning_plugin";
@@ -89,7 +89,7 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
     throw std::runtime_error(error);
   }
 
-  // TODO(henningkayser): configure trajectory execution manager
+  // TODO(henningkayser): configure trajectory execution manager - use `allow_trajectory_execution`
   trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(
       robot_model_, planning_scene_monitor_->getStateMonitor()));
 
@@ -116,6 +116,7 @@ bool MoveItCpp::loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& opti
     planning_scene_monitor_->startPublishingPlanningScene(planning_scene_monitor::PlanningSceneMonitor::UPDATE_SCENE,
                                                           options.publish_planning_scene_topic);
     planning_scene_monitor_->startSceneMonitor(options.monitored_planning_scene_topic);
+    planning_scene_monitor_->startWorldGeometryMonitor();
   }
   else
   {
@@ -153,6 +154,15 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
       ROS_ERROR_NAMED(LOGNAME, "Failed to initialize planning pipeline '%s'.", planning_pipeline_name.c_str());
       continue;
     }
+
+    // Configure planning pipeline
+    pipeline->displayComputedMotionPlans(true);
+    pipeline->checkSolutionPaths(true);
+
+    // TODO(henningkayser): enable debug flag
+    // if (debug)
+    //   pipeline->publishReceivedRequests(true);
+
     planning_pipelines_[planning_pipeline_name] = pipeline;
   }
 
@@ -312,5 +322,5 @@ void MoveItCpp::clearContents()
   robot_model_.reset();
   planning_pipelines_.clear();
 }
-}  // namespace planning_interface
+}  // namespace planning
 }  // namespace moveit

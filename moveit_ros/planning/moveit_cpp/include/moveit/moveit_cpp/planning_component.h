@@ -47,7 +47,7 @@
 
 namespace moveit
 {
-namespace planning_interface
+namespace planning
 {
 MOVEIT_CLASS_FORWARD(PlanningComponent);  // Defines PlanningComponentPtr, ConstPtr, WeakPtr... etc
 
@@ -225,5 +225,5 @@ private:
   /** \brief Reset all member variables */
   void clearContents();
 };
-}  // namespace planning_interface
+}  // namespace planning
 }  // namespace moveit

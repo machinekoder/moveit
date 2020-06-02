@@ -48,7 +48,7 @@
 
 namespace moveit
 {
-namespace planning_interface
+namespace planning
 {
 MOVEIT_CLASS_FORWARD(MoveItCpp);  // Defines MoveItCppPtr, ConstPtr, WeakPtr... etc
 
@@ -189,5 +189,5 @@ private:
   /** \brief Initialize and setup the planning pipelines */
   bool loadPlanningPipelines(const PlanningPipelineOptions& options);
 };
-}  // namespace planning_interface
+}  // namespace planning
 }  // namespace moveit

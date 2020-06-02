@@ -55,7 +55,7 @@
 
 namespace moveit
 {
-namespace planning_interface
+namespace planning
 {
 constexpr char LOGNAME[] = "planning_component";
 
@@ -324,5 +324,5 @@ void PlanningComponent::clearContents()
   moveit_cpp_.reset();
   planning_pipeline_names_.clear();
 }
-}  // namespace planning_interface
+}  // namespace planning
 }  // namespace moveit

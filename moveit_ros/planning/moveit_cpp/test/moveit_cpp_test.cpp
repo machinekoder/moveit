@@ -50,7 +50,7 @@
 
 namespace moveit
 {
-namespace planning_interface
+namespace planning
 {
 class MoveItCppTest : public ::testing::Test
 {
@@ -158,7 +158,7 @@ TEST_F(MoveItCppTest, TestSetGoalFromRobotState)
 
   ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
 }
-}  // namespace planning_interface
+}  // namespace planning
 }  // namespace moveit
 
 int main(int argc, char** argv)
