@@ -44,9 +44,7 @@
 #include <ros/console.h>
 #include <ros/ros.h>
 
-namespace moveit
-{
-namespace planning
+namespace moveit_cpp
 {
 constexpr char LOGNAME[] = "moveit_cpp";
 constexpr char PLANNING_PLUGIN_PARAM[] = "planning_plugin";
@@ -89,7 +87,7 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
     throw std::runtime_error(error);
   }
 
-  // TODO(henningkayser): configure trajectory execution manager - use `allow_trajectory_execution`
+  // TODO(henningkayser): configure trajectory execution manager
   trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(
       robot_model_, planning_scene_monitor_->getStateMonitor()));
 
@@ -154,14 +152,6 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
       ROS_ERROR_NAMED(LOGNAME, "Failed to initialize planning pipeline '%s'.", planning_pipeline_name.c_str());
       continue;
     }
-
-    // Configure planning pipeline
-    pipeline->displayComputedMotionPlans(true);
-    pipeline->checkSolutionPaths(true);
-
-    // TODO(henningkayser): enable debug flag
-    // if (debug)
-    //   pipeline->publishReceivedRequests(true);
 
     planning_pipelines_[planning_pipeline_name] = pipeline;
   }
@@ -322,5 +312,4 @@ void MoveItCpp::clearContents()
   robot_model_.reset();
   planning_pipelines_.clear();
 }
-}  // namespace planning
-}  // namespace moveit
+}  // namespace moveit_cpp
