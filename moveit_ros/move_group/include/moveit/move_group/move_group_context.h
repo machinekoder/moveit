@@ -70,8 +70,8 @@ MOVEIT_STRUCT_FORWARD(MoveGroupContext);
 
 struct MoveGroupContext
 {
-  MoveGroupContext(const moveit_cpp::MoveItCppPtr& moveit_cpp, bool allow_trajectory_execution = false,
-                   bool debug = false);
+  MoveGroupContext(const moveit_cpp::MoveItCppPtr& moveit_cpp, const std::string& default_planning_pipeline,
+                   bool allow_trajectory_execution = false, bool debug = false);
   ~MoveGroupContext();
 
   bool status() const;
