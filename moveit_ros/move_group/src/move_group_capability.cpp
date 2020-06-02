@@ -38,6 +38,9 @@
 #include <moveit/robot_state/conversions.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
+#include <sstream>
+#include <string>
+
 void move_group::MoveGroupCapability::setContext(const MoveGroupContextPtr& context)
 {
   context_ = context;
@@ -196,5 +199,44 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
     ROS_ERROR("TF Problem: %s", ex.what());
     return false;
   }
+  return true;
+}
+
+bool move_group::MoveGroupCapability::resolvePlanningPipeline(
+    const std::string& planner_id, planning_pipeline::PlanningPipelinePtr& planning_pipeline) const
+{
+  // Test if planner_id is prefixed with the planning pipeline name: <planning_pipeline>/<planner_id>
+  std::stringstream ss(planner_id);
+  std::string segment;
+  std::vector<std::string> planner_id_segments;
+  while (std::getline(ss, segment, '/'))
+    planner_id_segments.push_back(segment);
+
+  // Select planning pipeline to handle request
+  if (planner_id_segments.size() < 2)  // Use default planning pipeline
+  {
+    planning_pipeline = context_->planning_pipeline_;
+  }
+  else if (planner_id_segments.size() == 2)  // Resolve planning pipeline name from planner_id
+  {
+    const auto& pipeline_name = planner_id_segments[0];
+    try
+    {
+      planning_pipeline = context_->moveit_cpp_->getPlanningPipelines().at(pipeline_name);
+      ROS_INFO_NAMED(getName(), "Using planning pipeline '%s'", pipeline_name.c_str());
+    }
+    catch (const std::out_of_range&)
+    {
+      ROS_WARN_NAMED(getName(), "Couldn't find requested planning pipeline '%s'", pipeline_name.c_str());
+    }
+  }
+
+  // Fail if planning pipeline couldn't be loaded
+  if (!planning_pipeline)
+  {
+    ROS_ERROR_NAMED(getName(), "Failed to resolve planning pipeline from planner_id '%s'", planner_id.c_str());
+    return false;
+  }
+
   return true;
 }
