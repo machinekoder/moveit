@@ -53,9 +53,7 @@
 #include <ros/console.h>
 #include <ros/ros.h>
 
-namespace moveit
-{
-namespace planning
+namespace moveit_cpp
 {
 constexpr char LOGNAME[] = "planning_component";
 
@@ -324,5 +322,4 @@ void PlanningComponent::clearContents()
   moveit_cpp_.reset();
   planning_pipeline_names_.clear();
 }
-}  // namespace planning
-}  // namespace moveit
+}  // namespace moveit_cpp

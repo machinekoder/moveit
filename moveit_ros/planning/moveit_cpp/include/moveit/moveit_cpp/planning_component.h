@@ -45,9 +45,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 
-namespace moveit
-{
-namespace planning
+namespace moveit_cpp
 {
 MOVEIT_CLASS_FORWARD(PlanningComponent);  // Defines PlanningComponentPtr, ConstPtr, WeakPtr... etc
 
@@ -225,5 +223,4 @@ private:
   /** \brief Reset all member variables */
   void clearContents();
 };
-}  // namespace planning
-}  // namespace moveit
+}  // namespace moveit_cpp

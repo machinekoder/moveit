@@ -46,9 +46,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
-namespace moveit
-{
-namespace planning
+namespace moveit_cpp
 {
 MOVEIT_CLASS_FORWARD(MoveItCpp);  // Defines MoveItCppPtr, ConstPtr, WeakPtr... etc
 
@@ -189,5 +187,4 @@ private:
   /** \brief Initialize and setup the planning pipelines */
   bool loadPlanningPipelines(const PlanningPipelineOptions& options);
 };
-}  // namespace planning
-}  // namespace moveit
+}  // namespace moveit_cpp
