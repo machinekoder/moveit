@@ -37,6 +37,7 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
+#include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/plan_execution/plan_representation.h>
@@ -91,6 +92,8 @@ protected:
   clearRequestStartState(const planning_interface::MotionPlanRequest& request) const;
   moveit_msgs::PlanningScene clearSceneRobotState(const moveit_msgs::PlanningScene& scene) const;
   bool performTransform(geometry_msgs::PoseStamped& pose_msg, const std::string& target_frame) const;
+  bool resolvePlanningPipeline(const std::string& planner_id,
+                               planning_pipeline::PlanningPipelinePtr& planning_pipeline) const;
 
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;

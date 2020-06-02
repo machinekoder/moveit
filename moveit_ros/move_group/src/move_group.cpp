@@ -197,21 +197,33 @@ int main(int argc, char** argv)
   ros::NodeHandle pnh("~");
   moveit_cpp::MoveItCpp::Options moveit_cpp_options(pnh);
   std::string default_planning_pipeline;
+  auto& pipeline_names = moveit_cpp_options.planning_pipeline_options.pipeline_names;
   if (!pnh.getParam("default_planning_pipeline", default_planning_pipeline))
   {
+    // Handle deprecated move_group.launch
     ROS_WARN("MoveGroup launched without ~default_planning_pipeline specifying the namespace for the default "
              "planning pipeline configuration - Falling back to using the the node namespace (deprecated behavior).");
-    // Add this node as default namespace for the planning pipeline
+    // Add the node namespace as parameter namespace for the default planning pipeline
     default_planning_pipeline = ros::this_node::getNamespace();
-    moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(default_planning_pipeline);
+    pipeline_names.push_back(default_planning_pipeline);
   }
-  else if (moveit_cpp_options.planning_pipeline_options.pipeline_names.empty())
+  else if (pipeline_names.empty())
   {
+    //  Handle missing MoveItCpp config
     ROS_WARN("MoveGroup launched without MoveItCpp configuration for planning pipeline namespaces - adding '%s'",
              default_planning_pipeline.c_str());
-    moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(default_planning_pipeline);
+    pipeline_names.push_back(default_planning_pipeline);
+  }
+  else if (std::find(pipeline_names.begin(), pipeline_names.end(), default_planning_pipeline) == pipeline_names.end())
+  {
+    // Handle unknown ~default_planning_pipeline
+    ROS_WARN("MoveGroup launched with ~default_planning_pipeline not configured for MoveItCpp"
+             " - Attempting to load '%s' anyway",
+             default_planning_pipeline.c_str());
+    pipeline_names.push_back(default_planning_pipeline);
   }
 
+  // Initialize MoveItCpp
   const auto moveit_cpp = std::make_shared<moveit_cpp::MoveItCpp>(moveit_cpp_options, pnh, tf_buffer);
   const auto planning_scene_monitor = moveit_cpp->getPlanningSceneMonitor();
 
