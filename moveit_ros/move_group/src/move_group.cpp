@@ -70,13 +70,15 @@ static const char* DEFAULT_CAPABILITIES[] = {
 class MoveGroupExe
 {
 public:
-  MoveGroupExe(const moveit_cpp::MoveItCppPtr& moveit_cpp, bool debug) : node_handle_("~")
+  MoveGroupExe(const moveit_cpp::MoveItCppPtr& moveit_cpp, const std::string& default_planning_pipeline, bool debug)
+    : node_handle_("~")
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
 
-    context_ = std::make_shared<MoveGroupContext>(moveit_cpp, allow_trajectory_execution, debug);
+    context_ =
+        std::make_shared<MoveGroupContext>(moveit_cpp, default_planning_pipeline, allow_trajectory_execution, debug);
 
     // start the capabilities
     configureCapabilities();
@@ -191,8 +193,26 @@ int main(int argc, char** argv)
   std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>(ros::Duration(10.0));
   std::shared_ptr<tf2_ros::TransformListener> tfl = std::make_shared<tf2_ros::TransformListener>(*tf_buffer, nh);
 
+  // Load MoveItCpp parameters and check for valid planning pipeline configuration
   ros::NodeHandle pnh("~");
-  const auto moveit_cpp = std::make_shared<moveit_cpp::MoveItCpp>(pnh, tf_buffer);
+  moveit_cpp::MoveItCpp::Options moveit_cpp_options(pnh);
+  std::string default_planning_pipeline;
+  if (!pnh.getParam("default_planning_pipeline", default_planning_pipeline))
+  {
+    ROS_WARN("MoveGroup launched without ~default_planning_pipeline specifying the namespace for the default "
+             "planning pipeline configuration - Falling back to using the the node namespace (deprecated behavior).");
+    // Add this node as default namespace for the planning pipeline
+    default_planning_pipeline = ros::this_node::getNamespace();
+    moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(default_planning_pipeline);
+  }
+  else if (moveit_cpp_options.planning_pipeline_options.pipeline_names.empty())
+  {
+    ROS_WARN("MoveGroup launched without MoveItCpp configuration for planning pipeline namespaces - adding '%s'",
+             default_planning_pipeline.c_str());
+    moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(default_planning_pipeline);
+  }
+
+  const auto moveit_cpp = std::make_shared<moveit_cpp::MoveItCpp>(moveit_cpp_options, pnh, tf_buffer);
   const auto planning_scene_monitor = moveit_cpp->getPlanningSceneMonitor();
 
   if (planning_scene_monitor->getPlanningScene())
@@ -209,7 +229,7 @@ int main(int argc, char** argv)
     else
       ROS_INFO("MoveGroup debug mode is OFF");
 
-    move_group::MoveGroupExe mge(moveit_cpp, debug);
+    move_group::MoveGroupExe mge(moveit_cpp, default_planning_pipeline, debug);
 
     planning_scene_monitor->publishDebugInformation(debug);
 

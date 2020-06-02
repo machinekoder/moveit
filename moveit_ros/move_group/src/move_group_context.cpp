@@ -42,14 +42,33 @@
 #include <moveit/plan_execution/plan_with_sensing.h>
 
 move_group::MoveGroupContext::MoveGroupContext(const moveit_cpp::MoveItCppPtr& moveit_cpp,
+                                               const std::string& default_planning_pipeline,
                                                bool allow_trajectory_execution, bool debug)
   : moveit_cpp_(moveit_cpp)
   , planning_scene_monitor_(moveit_cpp->getPlanningSceneMonitor())
   , allow_trajectory_execution_(allow_trajectory_execution)
   , debug_(debug)
 {
-  // TODO(henningkayser): use global planning pipeline
-  planning_pipeline_ = moveit_cpp->getPlanningPipelines().begin()->second;
+  // Check if default planning pipeline has been initialized successfully
+  const auto& pipelines = moveit_cpp->getPlanningPipelines();
+  const auto default_pipeline_it = pipelines.find(default_planning_pipeline);
+  if (default_pipeline_it != pipelines.end())
+  {
+    planning_pipeline_ = default_pipeline_it->second;
+
+    // configure the planning pipeline
+    planning_pipeline_->displayComputedMotionPlans(true);
+    planning_pipeline_->checkSolutionPaths(true);
+
+    if (debug_)
+      planning_pipeline_->publishReceivedRequests(true);
+  }
+  else
+  {
+    ROS_ERROR(
+        "Failed to find default PlanningPipeline '%s' - please check MoveGroup's planning pipeline configuration.",
+        default_planning_pipeline.c_str());
+  }
 
   if (allow_trajectory_execution_)
   {
@@ -59,13 +78,6 @@ move_group::MoveGroupContext::MoveGroupContext(const moveit_cpp::MoveItCppPtr& m
     if (debug)
       plan_with_sensing_->displayCostSources(true);
   }
-
-  // configure the planning pipeline
-  planning_pipeline_->displayComputedMotionPlans(true);
-  planning_pipeline_->checkSolutionPaths(true);
-
-  if (debug_)
-    planning_pipeline_->publishReceivedRequests(true);
 }
 
 move_group::MoveGroupContext::~MoveGroupContext()
