@@ -1,6 +1,6 @@
 <launch>
     <!-- Specify the config files to use -->
-    <rosparam ns="moveit_cpp_test" command="load" file="$(find moveit_ros_planning_interface)/test/moveit_cpp.yaml" />
+    <rosparam ns="moveit_cpp_test" command="load" file="$(find moveit_ros_planning)/moveit_cpp/test/moveit_cpp.yaml" />
 
     <!-- Planning Pipeline -->
     <include ns="/moveit_cpp_test/ompl" file="$(find moveit_resources_panda_moveit_config)/launch/ompl_planning_pipeline.launch.xml"/>
