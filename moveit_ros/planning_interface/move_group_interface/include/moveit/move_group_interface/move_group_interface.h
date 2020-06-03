@@ -217,7 +217,10 @@ public:
    * of DOF. */
   unsigned int getVariableCount() const;
 
-  /** \brief Get the description of the planning plugin loaded by the action server */
+  /** \brief Get the descriptions of all planning plugins loaded by the action server */
+  bool getInterfaceDescriptions(std::vector<moveit_msgs::PlannerInterfaceDescription>& desc) const;
+
+  /** \brief Get the description of the default planning plugin loaded by the action server */
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc) const;
 
   /** \brief Get the planner parameters for given group and planner_id */
