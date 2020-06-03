@@ -110,6 +110,10 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->allow_looking, SIGNAL(toggled(bool)), this, SLOT(allowLookingToggled(bool)));
   connect(ui_->allow_replanning, SIGNAL(toggled(bool)), this, SLOT(allowReplanningToggled(bool)));
   connect(ui_->allow_external_program, SIGNAL(toggled(bool)), this, SLOT(allowExternalProgramCommunication(bool)));
+  connect(ui_->planning_pipeline_combo_box, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(planningPipelineIndexChanged(int)));
+  connect(ui_->planning_pipeline_combo_box, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(planningPipelineIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
@@ -394,8 +398,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       move_group_->allowReplanning(ui_->allow_replanning->isChecked());
       bool has_unique_endeffector = !move_group_->getEndEffectorLink().empty();
       planning_display_->addMainLoopJob([=]() { ui_->use_cartesian_path->setEnabled(has_unique_endeffector); });
-      moveit_msgs::PlannerInterfaceDescription desc;
-      if (move_group_->getInterfaceDescription(desc))
+      std::vector<moveit_msgs::PlannerInterfaceDescription> desc;
+      if (move_group_->getInterfaceDescriptions(desc))
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
       planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this),
                                           "populateConstraintsList");

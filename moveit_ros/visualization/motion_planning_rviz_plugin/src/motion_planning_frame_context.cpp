@@ -57,6 +57,13 @@ void MotionPlanningFrame::databaseConnectButtonClicked()
                                       "connect to database");
 }
 
+void MotionPlanningFrame::planningPipelineIndexChanged(int index)
+{
+  // Refresh planner interface description for selected pipeline
+  if (index >= 0 && index < planner_descriptions_.size())
+    populatePlannerDescription(planner_descriptions_[index]);
+}
+
 void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 {
   std::string planner_id = ui_->planning_algorithm_combo_box->itemText(index).toStdString();
@@ -65,7 +72,14 @@ void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 
   ui_->planner_param_treeview->setPlannerId(planner_id);
   if (move_group_)
+  {
+    // If we are using a non-default planning pipeline, we need to prepend the pipeline name to the planner id
+    const auto& current_pipeline_id = ui_->planning_pipeline_combo_box->currentText();
+    if (current_pipeline_id != "<default>")
+      planner_id = current_pipeline_id.toStdString() + "|" + planner_id;
+
     move_group_->setPlannerId(planner_id);
+  }
 }
 
 void MotionPlanningFrame::resetDbButtonClicked()
