@@ -58,15 +58,23 @@ void MoveGroupQueryPlannersService::initialize()
 bool MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request& /*req*/,
                                                    moveit_msgs::QueryPlannerInterfaces::Response& res)
 {
-  const planning_interface::PlannerManagerPtr& planner_interface = context_->planning_pipeline_->getPlannerManager();
-  if (planner_interface)
+  for (const auto& planning_pipelines : context_->moveit_cpp_->getPlanningPipelines())
   {
-    std::vector<std::string> algs;
-    planner_interface->getPlanningAlgorithms(algs);
-    moveit_msgs::PlannerInterfaceDescription pi_desc;
-    pi_desc.name = planner_interface->getDescription();
-    planner_interface->getPlanningAlgorithms(pi_desc.planner_ids);
-    res.planner_interfaces.push_back(pi_desc);
+    const auto& planning_pipeline_name = planning_pipelines.first;
+    const auto& planning_pipeline = planning_pipelines.second;
+    const planning_interface::PlannerManagerPtr& planner_interface = planning_pipeline->getPlannerManager();
+    if (planner_interface)
+    {
+      std::vector<std::string> algs;
+      planner_interface->getPlanningAlgorithms(algs);
+      moveit_msgs::PlannerInterfaceDescription pi_desc;
+      pi_desc.name = planner_interface->getDescription();
+      // Prepend non-default planning pipeline identifiers to interface names
+      if (planning_pipeline != context_->planning_pipeline_)
+        pi_desc.name = planning_pipeline_name + "|" + pi_desc.name;
+      planner_interface->getPlanningAlgorithms(pi_desc.planner_ids);
+      res.planner_interfaces.push_back(pi_desc);
+    }
   }
   return true;
 }
@@ -74,7 +82,12 @@ bool MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInte
 bool MoveGroupQueryPlannersService::getParams(moveit_msgs::GetPlannerParams::Request& req,
                                               moveit_msgs::GetPlannerParams::Response& res)
 {
-  const planning_interface::PlannerManagerPtr& planner_interface = context_->planning_pipeline_->getPlannerManager();
+  std::string planner_config;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline;
+  if (!resolvePlanningPipeline(req.planner_config, planning_pipeline, planner_config))
+    return false;
+
+  const planning_interface::PlannerManagerPtr& planner_interface = planning_pipeline->getPlannerManager();
   if (planner_interface)
   {
     std::map<std::string, std::string> config;
@@ -82,13 +95,13 @@ bool MoveGroupQueryPlannersService::getParams(moveit_msgs::GetPlannerParams::Req
     const planning_interface::PlannerConfigurationMap& configs = planner_interface->getPlannerConfigurations();
 
     planning_interface::PlannerConfigurationMap::const_iterator it =
-        configs.find(req.planner_config);  // fetch default params first
+        configs.find(planner_config);  // fetch default params first
     if (it != configs.end())
       config.insert(it->second.config.begin(), it->second.config.end());
 
     if (!req.group.empty())
     {  // merge in group-specific params
-      it = configs.find(req.group + "[" + req.planner_config + "]");
+      it = configs.find(req.group + "[" + planner_config + "]");
       if (it != configs.end())
         config.insert(it->second.config.begin(), it->second.config.end());
     }
@@ -105,14 +118,20 @@ bool MoveGroupQueryPlannersService::getParams(moveit_msgs::GetPlannerParams::Req
 bool MoveGroupQueryPlannersService::setParams(moveit_msgs::SetPlannerParams::Request& req,
                                               moveit_msgs::SetPlannerParams::Response& /*res*/)
 {
-  const planning_interface::PlannerManagerPtr& planner_interface = context_->planning_pipeline_->getPlannerManager();
   if (req.params.keys.size() != req.params.values.size())
     return false;
+
+  std::string planner_config;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline;
+  if (!resolvePlanningPipeline(req.planner_config, planning_pipeline, planner_config))
+    return false;
+
+  const planning_interface::PlannerManagerPtr& planner_interface = planning_pipeline->getPlannerManager();
 
   if (planner_interface)
   {
     planning_interface::PlannerConfigurationMap configs = planner_interface->getPlannerConfigurations();
-    std::string config_name = req.group.empty() ? req.planner_config : req.group + "[" + req.planner_config + "]";
+    std::string config_name = req.group.empty() ? planner_config : req.group + "[" + planner_config + "]";
 
     planning_interface::PlannerConfigurationSettings& config = configs[config_name];
     config.group = req.group;
