@@ -61,7 +61,7 @@ public:
     {
       std::string ns = "planning_scene_monitor_options/";
       nh.param<std::string>(ns + "name", name, "planning_scene_monitor");
-      nh.param<std::string>(ns + "robot_description", robot_description, "/robot_description");
+      nh.param<std::string>(ns + "robot_description", robot_description, "robot_description");
       nh.param(ns + "joint_state_topic", joint_state_topic,
                planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC);
       nh.param(ns + "attached_collision_object_topic", attached_collision_object_topic,
