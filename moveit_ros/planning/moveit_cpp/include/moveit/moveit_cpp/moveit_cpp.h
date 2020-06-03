@@ -39,6 +39,7 @@
 
 #pragma once
 
+#include <ros/ros.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
