@@ -92,8 +92,16 @@ protected:
   clearRequestStartState(const planning_interface::MotionPlanRequest& request) const;
   moveit_msgs::PlanningScene clearSceneRobotState(const moveit_msgs::PlanningScene& scene) const;
   bool performTransform(geometry_msgs::PoseStamped& pose_msg, const std::string& target_frame) const;
+
+  bool resolvePlanningPipeline(const std::string& planner_id, planning_pipeline::PlanningPipelinePtr& planning_pipeline,
+                               std::string& resolved_planner_id) const;
+
   bool resolvePlanningPipeline(const std::string& planner_id,
-                               planning_pipeline::PlanningPipelinePtr& planning_pipeline) const;
+                               planning_pipeline::PlanningPipelinePtr& planning_pipeline) const
+  {
+    std::string resolved_planner_id;
+    return resolvePlanningPipeline(planner_id, planning_pipeline, resolved_planner_id);
+  }
 
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;

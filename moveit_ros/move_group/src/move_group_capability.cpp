@@ -202,24 +202,23 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
   return true;
 }
 
-bool move_group::MoveGroupCapability::resolvePlanningPipeline(
-    const std::string& planner_id, planning_pipeline::PlanningPipelinePtr& planning_pipeline) const
+bool move_group::MoveGroupCapability::resolvePlanningPipeline(const std::string& planner_id,
+                                                              planning_pipeline::PlanningPipelinePtr& planning_pipeline,
+                                                              std::string& resolved_planner_id) const
 {
-  // Test if planner_id is prefixed with the planning pipeline name: <planning_pipeline>/<planner_id>
-  std::stringstream ss(planner_id);
-  std::string segment;
-  std::vector<std::string> planner_id_segments;
-  while (std::getline(ss, segment, '/'))
-    planner_id_segments.push_back(segment);
-
-  // Select planning pipeline to handle request
-  if (planner_id_segments.size() < 2)  // Use default planning pipeline
+  const size_t delimiter_pos = planner_id.find_first_of("|");
+  if (delimiter_pos == std::string::npos)
   {
+    // Without specified planning pipeline we use the default
     planning_pipeline = context_->planning_pipeline_;
+    resolved_planner_id = planner_id;
   }
-  else if (planner_id_segments.size() == 2)  // Resolve planning pipeline name from planner_id
+  else
   {
-    const auto& pipeline_name = planner_id_segments[0];
+    // We attempt to resolve the planning pipeline from the specified identifier and strip the pipeline name
+    // from planner_id
+    const auto& pipeline_name = planner_id.substr(0, delimiter_pos);
+    resolved_planner_id = delimiter_pos < planner_id.size() ? planner_id.substr(delimiter_pos + 1) : "";
     try
     {
       planning_pipeline = context_->moveit_cpp_->getPlanningPipelines().at(pipeline_name);
