@@ -279,6 +279,19 @@ public:
     return false;
   }
 
+  bool getInterfaceDescriptions(std::vector<moveit_msgs::PlannerInterfaceDescription>& desc)
+  {
+    moveit_msgs::QueryPlannerInterfaces::Request req;
+    moveit_msgs::QueryPlannerInterfaces::Response res;
+    if (query_service_.call(req, res))
+      if (!res.planner_interfaces.empty())
+      {
+        desc = res.planner_interfaces;
+        return true;
+      }
+    return false;
+  }
+
   std::map<std::string, std::string> getPlannerParams(const std::string& planner_id, const std::string& group = "")
   {
     moveit_msgs::GetPlannerParams::Request req;
@@ -1387,6 +1400,11 @@ const ros::NodeHandle& MoveGroupInterface::getNodeHandle() const
 bool MoveGroupInterface::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc) const
 {
   return impl_->getInterfaceDescription(desc);
+}
+
+bool MoveGroupInterface::getInterfaceDescriptions(std::vector<moveit_msgs::PlannerInterfaceDescription>& desc) const
+{
+  return impl_->getInterfaceDescriptions(desc);
 }
 
 std::map<std::string, std::string> MoveGroupInterface::getPlannerParams(const std::string& planner_id,
