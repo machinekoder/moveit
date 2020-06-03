@@ -224,3 +224,11 @@ private:
   void clearContents();
 };
 }  // namespace moveit_cpp
+
+namespace moveit
+{
+namespace planning_interface
+{
+using PlanningComponent[[deprecated("use moveit_cpp")]] = moveit_cpp::PlanningComponent;
+}
+}

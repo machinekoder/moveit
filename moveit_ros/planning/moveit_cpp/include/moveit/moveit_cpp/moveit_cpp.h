@@ -188,3 +188,11 @@ private:
   bool loadPlanningPipelines(const PlanningPipelineOptions& options);
 };
 }  // namespace moveit_cpp
+
+namespace moveit
+{
+namespace planning_interface
+{
+using MoveItCpp[[deprecated("use moveit_cpp")]] = moveit_cpp::MoveItCpp;
+}
+}
