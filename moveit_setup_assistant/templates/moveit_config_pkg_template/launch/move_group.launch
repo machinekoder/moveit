@@ -45,7 +45,20 @@
   </include>
 
   <!-- Planning Functionality -->
-  <include ns="move_group/$(arg pipeline)" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
+  <include ns="move_group/ompl" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
+    <arg name="pipeline" value="ompl" />
+    <param name="capabilities" value="$(arg capabilities)"/>
+    <param name="disable_capabilities" value="$(arg disable_capabilities)"/>
+  </include>
+
+  <include ns="move_group/chomp" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
+    <arg name="pipeline" value="chomp" />
+    <param name="capabilities" value="$(arg capabilities)"/>
+    <param name="disable_capabilities" value="$(arg disable_capabilities)"/>
+  </include>
+
+  <!-- Support custom planning pipeline -->
+  <include if="$(eval arg('pipeline') not in ['ompl', 'chomp'])" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
     <arg name="pipeline" value="$(arg pipeline)" />
     <param name="capabilities" value="$(arg capabilities)"/>
     <param name="disable_capabilities" value="$(arg disable_capabilities)"/>
@@ -72,8 +85,8 @@
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
     <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
-    <param name="default_planning_pipeline" value="$(arg pipeline)"/>
-
+    <rosparam param="planning_pipelines/pipeline_names">[ompl,chomp]</rosparam>
+    <param name="default_planning_pipeline" value="$(arg pipeline)" />
 
     <!-- Publish the planning scene of the physical robot so that rviz plugin can know actual robot -->
     <param name="planning_scene_monitor/publish_planning_scene" value="$(arg publish_monitored_planning_scene)" />
