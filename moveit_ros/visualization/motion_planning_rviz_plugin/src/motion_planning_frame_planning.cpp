@@ -377,7 +377,39 @@ void MotionPlanningFrame::updateQueryStateHelper(moveit::core::RobotState& state
     state.setToDefaultValues(jmg, v);
 }
 
-void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription& desc)
+void MotionPlanningFrame::populatePlannersList(const std::vector<moveit_msgs::PlannerInterfaceDescription>& desc)
+{
+  ui_->planning_pipeline_combo_box->clear();
+
+  planner_descriptions_ = desc;
+  size_t default_planner_index = 0;
+  for (auto& d : planner_descriptions_)
+  {
+    // The planner config name can be prependeded with the namespace of a non-default planning pipeline.
+    // We populate the list with <default> and the non-default pipeline ids and use these values for
+    // generating the planner_id values for MotionPlanRequests
+    auto planner_config_name = QString::fromStdString(d.name).split('|');
+    if (planner_config_name.size() == 1)
+    {
+      ui_->planning_pipeline_combo_box->addItem("<default>");
+      default_planner_index = ui_->planning_pipeline_combo_box->count() - 1;
+    }
+    else
+    {
+      ui_->planning_pipeline_combo_box->addItem(planner_config_name.at(0));
+      // Remove pipeline namespace from planner plugin name for cleaner display
+      planner_config_name.removeFirst();
+      const auto joined_string = planner_config_name.join("/");
+      d.name = joined_string.toStdString();
+    }
+  }
+
+  // Select default pipeline - triggers populatePlannerDescription() via callback
+  if (!planner_descriptions_.empty())
+    ui_->planning_pipeline_combo_box->setCurrentIndex(default_planner_index);
+}
+
+void MotionPlanningFrame::populatePlannerDescription(const moveit_msgs::PlannerInterfaceDescription& desc)
 {
   std::string group = planning_display_->getCurrentPlanningGroup();
   ui_->planning_algorithm_combo_box->clear();
