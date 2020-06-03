@@ -226,7 +226,6 @@ namespace moveit
 namespace planning_interface
 {
 using PlanningComponent[[deprecated("use moveit_cpp")]] = moveit_cpp::PlanningComponent;
-using PlanningComponentPtr[[deprecated("use moveit_cpp")]] = moveit_cpp::PlanningComponentPtr;
-using PlanningComponentConstPtr[[deprecated("use moveit_cpp")]] = moveit_cpp::PlanningComponentConstPtr;
+[[deprecated("use moveit_cpp")]] MOVEIT_DECLARE_PTR(PlanningComponent, moveit_cpp::PlanningComponent);
 }
 }
