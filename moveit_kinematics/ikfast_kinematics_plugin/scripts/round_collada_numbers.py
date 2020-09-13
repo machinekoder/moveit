@@ -50,11 +50,11 @@ def doRound(values,decimal_places):
 
     for num in num_vector:
         new_num = round(float(num),decimal_places)
-        print "Old:",num,"New:",new_num
+        print("Old:",num,"New:",new_num)
         new_vector.append(str(new_num))
 
     new = " ".join(new_vector)
-    #print 'Original:', values, '  Updated: ', new
+    #print('Original:', values, '  Updated: ', new)
 
     return new
 
@@ -69,12 +69,12 @@ if __name__ == '__main__':
         decimal_places = int(sys.argv[3])
         assert( len(sys.argv) < 5 )   # invalid num-arguments
     except:
-        print '\nUsage: round_collada_numbers.py <input_dae> <output_dae> <decimal places>'
-        print 'Rounds all the numbers to <decimal places> places\n'
+        print('\nUsage: round_collada_numbers.py <input_dae> <output_dae> <decimal places>')
+        print('Rounds all the numbers to <decimal places> places\n')
         sys.exit(-1)
 
-    print '\nCollada Number Rounder'
-    print 'Rounding numbers to', decimal_places, ' decimal places\n'
+    print('\nCollada Number Rounder')
+    print('Rounding numbers to', decimal_places, ' decimal places\n')
 
     # Read string from file
     f = open(input_file,'r')
@@ -85,10 +85,10 @@ if __name__ == '__main__':
     #print(doc.tag)
     #doc = etree.parse(io.BytesIO(xml))
     #element=doc.xpath('//ns:asset',namespaces={'ns','http://www.collada.org/2008/03/COLLADASchema'})
-    #print element
+    #print(element)
 
     namespace = 'http://www.collada.org/2008/03/COLLADASchema'
-    dom = etree.parse(io.BytesIO(xml))
+    dom = etree.parse(io.BytesIO(xml.encode()))
 
     # find elements of particular name
     elements=dom.xpath('//ns:translate',namespaces={'ns':namespace})
@@ -117,7 +117,5 @@ if __name__ == '__main__':
 
     # save changes
     f = open(output_file,'w')
-    f.write(etree.tostring(dom))
+    f.write(etree.tostring(dom).decode())
     f.close()
-
-
