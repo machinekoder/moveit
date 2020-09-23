@@ -43,6 +43,8 @@
 #include <moveit_servo/servo_calcs.h>
 #include <moveit_servo/make_shared_from_pool.h>
 
+#include <utility>
+
 static const std::string LOGNAME = "servo_calcs";
 constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
@@ -71,12 +73,12 @@ bool isNonZero(const control_msgs::JointJog& msg)
 
 // Constructor for the class that handles servoing calculations
 ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
-                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                       const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
+                       planning_scene_monitor::PlanningSceneMonitorPtr  planning_scene_monitor,
+                       std::shared_ptr<JointStateSubscriber>  joint_state_subscriber)
   : nh_(nh)
   , parameters_(parameters)
-  , planning_scene_monitor_(planning_scene_monitor)
-  , joint_state_subscriber_(joint_state_subscriber)
+  , planning_scene_monitor_(std::move(planning_scene_monitor))
+  , joint_state_subscriber_(std::move(joint_state_subscriber))
   , period_(parameters.publish_period)
 {
   // MoveIt Setup

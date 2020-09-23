@@ -42,6 +42,8 @@
 #include <moveit_servo/collision_check.h>
 #include <moveit_servo/make_shared_from_pool.h>
 
+#include <utility>
+
 static const char LOGNAME[] = "collision_check";
 static const double MIN_RECOMMENDED_COLLISION_RATE = 10;
 constexpr double EPSILON = 1e-6;                // For very small numeric comparisons
@@ -51,12 +53,12 @@ namespace moveit_servo
 {
 // Constructor for the class that handles collision checking
 CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoParameters& parameters,
-                               const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                               const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
+                               planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor,
+                               std::shared_ptr<JointStateSubscriber> joint_state_subscriber)
   : nh_(nh)
   , parameters_(parameters)
-  , planning_scene_monitor_(planning_scene_monitor)
-  , joint_state_subscriber_(joint_state_subscriber)
+  , planning_scene_monitor_(std::move(planning_scene_monitor))
+  , joint_state_subscriber_(std::move(joint_state_subscriber))
   , self_velocity_scale_coefficient_(-log(0.001) / parameters.self_collision_proximity_threshold)
   , scene_velocity_scale_coefficient_(-log(0.001) / parameters.scene_collision_proximity_threshold)
   , period_(1. / parameters_.collision_check_rate)

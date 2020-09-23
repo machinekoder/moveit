@@ -41,12 +41,14 @@
 
 #include <moveit_servo/servo.h>
 
+#include <utility>
+
 static const std::string LOGNAME = "servo_node";
 
 namespace moveit_servo
 {
-Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-  : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
+Servo::Servo(ros::NodeHandle& nh, planning_scene_monitor::PlanningSceneMonitorPtr  planning_scene_monitor)
+  : nh_(nh), planning_scene_monitor_(std::move(planning_scene_monitor))
 {
   // Read ROS parameters, typically from YAML file
   if (!readParameters())

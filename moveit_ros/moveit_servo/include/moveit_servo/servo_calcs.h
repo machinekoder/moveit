@@ -63,8 +63,8 @@ class ServoCalcs
 {
 public:
   ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
-             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-             const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
+             planning_scene_monitor::PlanningSceneMonitorPtr  planning_scene_monitor,
+             std::shared_ptr<JointStateSubscriber>  joint_state_subscriber);
 
   /** \brief Start and stop the timer where we do work and publish outputs */
   void start();

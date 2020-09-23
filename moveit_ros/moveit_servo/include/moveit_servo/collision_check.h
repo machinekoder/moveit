@@ -65,8 +65,8 @@ public:
    *                                 already started when passed into this class
    */
   CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoParameters& parameters,
-                 const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                 const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
+                 planning_scene_monitor::PlanningSceneMonitorPtr  planning_scene_monitor,
+                 std::shared_ptr<JointStateSubscriber>  joint_state_subscriber);
 
   /** \brief start and stop the Timer */
   void start();
