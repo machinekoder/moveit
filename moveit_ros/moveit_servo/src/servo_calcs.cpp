@@ -45,7 +45,7 @@
 
 #include <utility>
 
-static const std::string LOGNAME = "servo_calcs";
+constexpr char LOGNAME[] = "servo_calcs";
 constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
 namespace moveit_servo
@@ -66,7 +66,7 @@ bool isNonZero(const control_msgs::JointJog& msg)
   for (double delta : msg.velocities)
   {
     all_zeros &= (delta == 0.0);
-  };
+  }
   return !all_zeros;
 }
 }  // namespace
@@ -592,12 +592,7 @@ void ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singul
 {
   double collision_scale = collision_velocity_scale_;
 
-  if (collision_scale > 0 && collision_scale < 1)
-  {
-    status_ = StatusCode::DECELERATE_FOR_COLLISION;
-    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, SERVO_STATUS_CODE_MAP.at(status_));
-  }
-  else if (collision_scale == 0)
+  if (collision_scale == 0)
   {
     status_ = StatusCode::HALT_FOR_COLLISION;
   }
@@ -846,14 +841,12 @@ bool ServoCalcs::updateJoints()
   original_joint_state_ = internal_joint_state_;
 
   // Calculate worst case joint stop time, for collision checking
-  std::string joint_name = "";
   moveit::core::JointModel::Bounds kinematic_bounds;
   double accel_limit = 0;
-  double joint_velocity = 0;
   double worst_case_stop_time = 0;
   for (size_t jt_state_idx = 0; jt_state_idx < latest_joint_state->velocity.size(); ++jt_state_idx)
   {
-    joint_name = latest_joint_state->name[jt_state_idx];
+    const auto &joint_name = latest_joint_state->name[jt_state_idx];
 
     // Get acceleration limit for this joint
     for (auto joint_model : joint_model_group_->getActiveJointModels())
@@ -879,7 +872,7 @@ bool ServoCalcs::updateJoints()
     }
 
     // Get the current joint velocity
-    joint_velocity = latest_joint_state->velocity[jt_state_idx];
+    double joint_velocity = latest_joint_state->velocity[jt_state_idx];
 
     // Calculate worst case stop time
     worst_case_stop_time = std::max(worst_case_stop_time, fabs(joint_velocity / accel_limit));

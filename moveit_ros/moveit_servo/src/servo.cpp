@@ -43,7 +43,7 @@
 
 #include <utility>
 
-static const std::string LOGNAME = "servo_node";
+constexpr char LOGNAME[] = "servo_node";
 
 namespace moveit_servo
 {

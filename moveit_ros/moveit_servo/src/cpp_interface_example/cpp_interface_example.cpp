@@ -56,7 +56,7 @@ public:
 private:
   void statusCB(const std_msgs::Int8ConstPtr& msg)
   {
-    moveit_servo::StatusCode latest_status = static_cast<moveit_servo::StatusCode>(msg->data);
+    auto latest_status = static_cast<moveit_servo::StatusCode>(msg->data);
     if (latest_status != status_)
     {
       status_ = latest_status;

@@ -220,7 +220,7 @@ void CollisionCheck::printCollisionPairs(collision_detection::CollisionResult::C
                                        << contact_map.begin()->first.second);
     // Log all other contacts if in debug mode
     ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision:");
-    for (auto contact : contact_map)
+    for (const auto& contact : contact_map)
     {
       ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
                                       "\t" << contact.first.first << ", " << contact.first.second);
