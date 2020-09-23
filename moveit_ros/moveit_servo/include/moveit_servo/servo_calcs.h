@@ -105,7 +105,7 @@ private:
    */
   Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
 
-  bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
+  static bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) ;
 
   /** \brief Suddenly halt for a joint limit or other critical issue.
    * Is handled differently for position vs. velocity control.
@@ -143,7 +143,7 @@ private:
   void resetLowPassFilters(const sensor_msgs::JointState& joint_state);
 
   /** \brief Convert an incremental position command to joint velocity message */
-  void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
+  void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta) const;
 
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
    * This happens for joint commands and Cartesian commands.
@@ -162,10 +162,10 @@ private:
    * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
-  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
   /* \brief Callback for joint subsription */
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+  static void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
   /* \brief Command callbacks */
   void twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg);

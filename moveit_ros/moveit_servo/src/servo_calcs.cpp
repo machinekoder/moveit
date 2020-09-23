@@ -555,7 +555,7 @@ void ServoCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
   updated_filters_ = true;
 }
 
-void ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta)
+void ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta) const
 {
   for (int i = 0; i < delta_theta.size(); ++i)
   {
@@ -958,7 +958,7 @@ Eigen::VectorXd ServoCalcs::scaleJointCommand(const control_msgs::JointJog& comm
 }
 
 // Add the deltas to each joint
-bool ServoCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const
+bool ServoCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments)
 {
   for (std::size_t i = 0, size = static_cast<std::size_t>(increments.size()); i < size; ++i)
   {
