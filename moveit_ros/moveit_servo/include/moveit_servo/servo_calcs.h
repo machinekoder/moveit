@@ -162,9 +162,6 @@ private:
    * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
-
-  /* \brief Callback for joint subsription */
-  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
   static void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
   /* \brief Command callbacks */
