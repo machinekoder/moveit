@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_srvs
   tf2_eigen
   trajectory_msgs
+  tf_conversions
 )
 
 catkin_package(
@@ -47,6 +48,7 @@ catkin_package(
     std_srvs
     tf2_eigen
     trajectory_msgs
+    tf_conversions
   DEPENDS
     EIGEN3
 )
