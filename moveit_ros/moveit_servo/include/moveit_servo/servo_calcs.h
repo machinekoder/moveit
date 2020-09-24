@@ -54,9 +54,11 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/String.h>
 #include <std_srvs/Empty.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <tf/transform_listener.h>
 
 // moveit_servo
 #include <moveit_servo/servo_parameters.h>
@@ -115,13 +117,16 @@ private:
   void stop();
 
   /** \brief Do servoing calculations for Cartesian twist commands. */
-  bool cartesianServoCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
+  bool cartesianServoCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory, const std::string &planning_frame, const std::string &command_frame);
 
   /** \brief Do servoing calculations for direct commands to a joint. */
   bool jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
   void updateJoints();
+
+  /** \brief Calculates the transform between the planning frame and the command frame */
+  Eigen::Isometry3d calculateCommandFrameTransform(const std::string &planning_frame, const std::string &command_frame) const;
 
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
@@ -199,6 +204,8 @@ private:
   void twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg);
   void jointCmdCB(const control_msgs::JointJogConstPtr& msg);
   void collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
+  void planningFrameCB(const std_msgs::StringConstPtr& msg);
+  void robotLinkCommandFrameCB(const std_msgs::StringConstPtr& msg);
 
   /**
    * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
@@ -245,6 +252,10 @@ private:
   geometry_msgs::TwistStamped twist_stamped_cmd_;
   control_msgs::JointJog joint_servo_cmd_;
 
+  // current planning and command frame
+  std::string planning_frame_;
+  std::string robot_link_command_frame_;
+
   const moveit::core::JointModelGroup* joint_model_group_;
 
   moveit::core::RobotStatePtr current_state_;
@@ -266,6 +277,8 @@ private:
   ros::Subscriber twist_stamped_sub_;
   ros::Subscriber joint_cmd_sub_;
   ros::Subscriber collision_velocity_scale_sub_;
+  ros::Subscriber planning_frame_sub_;
+  ros::Subscriber robot_link_command_frame_sub_;
   ros::Publisher status_pub_;
   ros::Publisher worst_case_stop_time_pub_;
   ros::Publisher outgoing_cmd_pub_;
@@ -276,6 +289,7 @@ private:
   // Main tracking / result publisher loop
   std::thread thread_;
   bool stop_requested_;
+  tf::TransformListener listener_;
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
@@ -296,7 +310,7 @@ private:
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
   std::array<bool, 6> drift_dimensions_ = { { false, false, false, false, false, false } };
 
-  // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
+  // The dimensions to control. In the command frame. [x, y, z, roll, pitch, yaw]
   std::array<bool, 6> control_dimensions_ = { { true, true, true, true, true, true } };
 
   // input_mutex_ is used to protect the state below it
@@ -313,5 +327,7 @@ private:
   // input condition variable used for low latency mode
   std::condition_variable input_cv_;
   bool new_input_cmd_ = false;
+  std::string latest_planning_frame_;
+  std::string latest_robot_link_command_frame_;
 };
 }  // namespace moveit_servo
