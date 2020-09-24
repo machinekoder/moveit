@@ -29,6 +29,7 @@
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>
+  <depend>tf_conversions</depend>
 
   <exec_depend>joy_teleop</exec_depend>
   <exec_depend>spacenav_node</exec_depend>

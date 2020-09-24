@@ -162,6 +162,21 @@ bool Servo::readParameters()
 
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
+
+  bool have_planning_frame_topic = rosparam_shortcuts::get("", nh_, parameter_ns + "/planning_frame_topic", parameters_.planning_frame_topic);
+  if (!have_planning_frame_topic)
+  {
+    parameters_.planning_frame_topic = "";
+    ROS_DEBUG_NAMED(LOGNAME, "No planning_frame_topic parameter, will use fixed planning frame.");
+  }
+  bool have_robot_link_frame_topic = rosparam_shortcuts::get("", nh_, parameter_ns + "/robot_link_command_frame_topic",
+                                                              parameters_.robot_link_command_frame_topic);
+  if (!have_robot_link_frame_topic)
+  {
+    parameters_.robot_link_command_frame_topic = "";
+    ROS_DEBUG_NAMED(LOGNAME, "No robot_link_command_frame_topic, will use fixed robot link command frame.");
+  }
+
   // Input checking
   if (parameters_.publish_period <= 0.)
   {

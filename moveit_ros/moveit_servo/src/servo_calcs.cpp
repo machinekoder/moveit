@@ -43,6 +43,8 @@
 #include <moveit_servo/servo_calcs.h>
 #include <moveit_servo/make_shared_from_pool.h>
 
+#include <tf_conversions/tf_eigen.h>
+
 #include <utility>
 
 constexpr char LOGNAME[] = "servo_calcs";
@@ -115,6 +117,16 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
       nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/reset_servo_status",
                            &ServoCalcs::resetServoStatus, this);
 
+  // Subscribe to planning frame and command frame topics if topics are specified
+  latest_planning_frame_ = parameters_.planning_frame;
+  if (!parameters_.planning_frame_topic.empty()) {
+    planning_frame_sub_ = nh.subscribe(parameters_.planning_frame_topic, ROS_QUEUE_SIZE, &ServoCalcs::planningFrameCB, this);
+  }
+  latest_robot_link_command_frame_ = parameters_.robot_link_command_frame;
+  if (!parameters_.robot_link_command_frame_topic.empty()) {
+    robot_link_command_frame_sub_ = nh.subscribe(parameters_.robot_link_command_frame_topic, ROS_QUEUE_SIZE, &ServoCalcs::robotLinkCommandFrameCB, this);
+  }
+
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
   collision_velocity_scale_sub_ =
@@ -139,7 +151,6 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   // Set up the "last" published message, in case we need to send it first
   auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
   auto latest_joints = joint_state_subscriber_->getLatest();
-  initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
   initial_joint_trajectory->header.stamp = ros::Time::now();
   initial_joint_trajectory->joint_names = internal_joint_state_.name;
   trajectory_msgs::JointTrajectoryPoint point;
@@ -230,14 +241,14 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
 
     have_nonzero_twist_stamped_ = latest_nonzero_twist_stamped_;
     have_nonzero_joint_command_ = latest_nonzero_joint_cmd_;
+
+    planning_frame_ = latest_planning_frame_;
+    robot_link_command_frame_ = latest_robot_link_command_frame_;
   }
 
   // Get the transform from MoveIt planning frame to servoing command frame
   // Calculate this transform to ensure it is available via C++ API
-  // We solve (planning_frame -> base -> robot_link_command_frame)
-  // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
-  tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                                  kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+  tf_moveit_to_robot_cmd_frame_ = calculateCommandFrameTransform(planning_frame_, robot_link_command_frame_);
 
   have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_command_;
 
@@ -267,7 +278,7 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // Only run commands if not stale and nonzero
   if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
   {
-    if (!cartesianServoCalcs(twist_stamped_cmd_, *joint_trajectory))
+    if (!cartesianServoCalcs(twist_stamped_cmd_, *joint_trajectory, planning_frame_, robot_link_command_frame_))
     {
       resetLowPassFilters(original_joint_state_);
       return;
@@ -361,7 +372,9 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
 }
 // Perform the servoing calculations
 bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
-                                     trajectory_msgs::JointTrajectory& joint_trajectory)
+                                     trajectory_msgs::JointTrajectory& joint_trajectory,
+                                     const std::string &planning_frame,
+                                     const std::string &command_frame)
 {
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
@@ -399,31 +412,26 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
     cmd.twist.angular.z = 0;
 
   // Transform the command to the MoveGroup planning frame
-  if (cmd.header.frame_id != parameters_.planning_frame)
+  if (cmd.header.frame_id != planning_frame)
   {
     Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
     Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
 
     // If the incoming frame is empty or is the command frame, we use the previously calculated tf
-    if (cmd.header.frame_id.empty() || cmd.header.frame_id == parameters_.robot_link_command_frame)
+    if (cmd.header.frame_id.empty() || cmd.header.frame_id == command_frame)
     {
       translation_vector = tf_moveit_to_robot_cmd_frame_.linear() * translation_vector;
       angular_vector = tf_moveit_to_robot_cmd_frame_.linear() * angular_vector;
     }
     else
     {
-      // We solve (planning_frame -> base -> cmd.header.frame_id)
-      // by computing (base->planning_frame)^-1 * (base->cmd.header.frame_id)
-      const auto tf_moveit_to_incoming_cmd_frame =
-          kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-          kinematic_state_->getGlobalLinkTransform(cmd.header.frame_id);
-
+      const auto tf_moveit_to_incoming_cmd_frame = calculateCommandFrameTransform(planning_frame, cmd.header.frame_id);
       translation_vector = tf_moveit_to_incoming_cmd_frame.linear() * translation_vector;
       angular_vector = tf_moveit_to_incoming_cmd_frame.linear() * angular_vector;
     }
 
     // Put these components back into a TwistStamped
-    cmd.header.frame_id = parameters_.planning_frame;
+    cmd.header.frame_id = planning_frame;
     cmd.twist.linear.x = translation_vector(0);
     cmd.twist.linear.y = translation_vector(1);
     cmd.twist.linear.z = translation_vector(2);
@@ -566,7 +574,6 @@ void ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, 
 void ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
                                          trajectory_msgs::JointTrajectory& joint_trajectory) const
 {
-  joint_trajectory.header.frame_id = parameters_.planning_frame;
   joint_trajectory.header.stamp = ros::Time::now();
   joint_trajectory.joint_names = joint_state.name;
 
@@ -1021,6 +1028,18 @@ void ServoCalcs::collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg)
   collision_velocity_scale_ = msg->data;
 }
 
+void ServoCalcs::planningFrameCB(const std_msgs::StringConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  latest_planning_frame_ = msg->data;
+}
+
+void ServoCalcs::robotLinkCommandFrameCB(const std_msgs::StringConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  latest_robot_link_command_frame_ = msg->data;
+}
+
 bool ServoCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
                                        moveit_msgs::ChangeDriftDimensions::Response& res)
 {
@@ -1058,6 +1077,49 @@ bool ServoCalcs::resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty
 void ServoCalcs::setPaused(bool paused)
 {
   paused_ = paused;
+}
+
+Eigen::Isometry3d ServoCalcs::calculateCommandFrameTransform(
+    const std::string& planning_frame, const std::string& command_frame) const
+{
+  // We solve (planning_frame -> base -> robot_link_command_frame)
+  // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
+  const auto &root_link_frame = kinematic_state_->getRobotModel()->getRootLinkName();
+  Eigen::Isometry3d planning_frame_tf;
+  Eigen::Isometry3d command_frame_tf;
+  if (kinematic_state_->knowsFrameTransform(planning_frame))
+  {
+    planning_frame_tf = kinematic_state_->getFrameTransform(planning_frame);
+  }
+  else
+  {
+    tf::StampedTransform transform;
+    try {
+      listener_.lookupTransform(planning_frame, root_link_frame, ros::Time(0), transform);
+    }
+    catch (const tf::TransformException &ex) {
+      ROS_ERROR_STREAM_DELAYED_THROTTLE_NAMED(1, LOGNAME, ex.what());
+      return Eigen::Isometry3d();
+    }
+    tf::transformTFToEigen(transform, planning_frame_tf);
+  }
+  if (kinematic_state_->knowsFrameTransform(command_frame))
+  {
+    command_frame_tf = kinematic_state_->getFrameTransform(command_frame);
+  }
+  else
+  {
+    tf::StampedTransform transform;
+    try {
+      listener_.lookupTransform(command_frame, root_link_frame, ros::Time(0), transform);
+    }
+    catch (const tf::TransformException &ex) {
+      ROS_ERROR_STREAM_DELAYED_THROTTLE_NAMED(1, LOGNAME, ex.what());
+      return Eigen::Isometry3d();
+    }
+    tf::transformTFToEigen(transform, command_frame_tf);
+  }
+  return planning_frame_tf.inverse() * command_frame_tf;
 }
 
 }  // namespace moveit_servo
