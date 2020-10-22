@@ -194,7 +194,7 @@ namespace moveit
 {
 namespace planning_interface
 {
-using MoveItCpp[[deprecated("use moveit_cpp")]] = moveit_cpp::MoveItCpp;
+using MoveItCpp [[deprecated("use moveit_cpp")]] = moveit_cpp::MoveItCpp;
 [[deprecated("use moveit_cpp")]] MOVEIT_DECLARE_PTR(MoveItCpp, moveit_cpp::MoveItCpp);
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
