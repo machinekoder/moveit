@@ -14,12 +14,11 @@ target_link_libraries(${MOVEIT_LIB_NAME}
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 if (CATKIN_ENABLE_TESTING)
-  find_package(moveit_resources REQUIRED)
+  find_package(moveit_resources_panda_moveit_config REQUIRED)
   find_package(rostest REQUIRED)
 
   add_rostest_gtest(moveit_cpp_test test/moveit_cpp_test.test test/moveit_cpp_test.cpp)
   target_link_libraries(moveit_cpp_test moveit_cpp ${catkin_LIBRARIES})
-
 endif()
 
 install(TARGETS ${MOVEIT_LIB_NAME}
