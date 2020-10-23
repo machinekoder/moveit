@@ -182,7 +182,7 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
 
   // Select planning_pipeline to handle request
   planning_pipeline::PlanningPipelinePtr planning_pipeline;
-  if (!resolvePlanningPipeline(goal->request.planner_id, planning_pipeline))
+  if (!resolvePlanningPipeline(goal->request.pipeline_id, planning_pipeline))
   {
     action_res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return;
@@ -213,7 +213,7 @@ bool MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::Mo
 
   // Select planning_pipeline to handle request
   planning_pipeline::PlanningPipelinePtr planning_pipeline;
-  if (!resolvePlanningPipeline(req.planner_id, planning_pipeline))
+  if (!resolvePlanningPipeline(req.pipeline_id, planning_pipeline))
   {
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return solved;
