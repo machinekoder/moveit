@@ -61,7 +61,13 @@ void MotionPlanningFrame::planningPipelineIndexChanged(int index)
 {
   // Refresh planner interface description for selected pipeline
   if (index >= 0 && index < planner_descriptions_.size())
+  {
+    // Set the selected pipeline id
+    if (move_group_)
+      move_group_->setPlanningPipelineId(planner_descriptions_[index].pipeline_id);
+
     populatePlannerDescription(planner_descriptions_[index]);
+  }
 }
 
 void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
@@ -71,15 +77,9 @@ void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
     planner_id = "";
 
   ui_->planner_param_treeview->setPlannerId(planner_id);
-  if (move_group_)
-  {
-    // If we are using a non-default planning pipeline, we need to prepend the pipeline name to the planner id
-    const auto& current_pipeline_id = ui_->planning_pipeline_combo_box->currentText();
-    if (current_pipeline_id != "<default>")
-      planner_id = current_pipeline_id.toStdString() + "|" + planner_id;
 
+  if (move_group_)
     move_group_->setPlannerId(planner_id);
-  }
 }
 
 void MotionPlanningFrame::resetDbButtonClicked()

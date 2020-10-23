@@ -385,22 +385,16 @@ void MotionPlanningFrame::populatePlannersList(const std::vector<moveit_msgs::Pl
   size_t default_planner_index = 0;
   for (auto& d : planner_descriptions_)
   {
-    // The planner config name can be prependeded with the namespace of a non-default planning pipeline.
-    // We populate the list with <default> and the non-default pipeline ids and use these values for
-    // generating the planner_id values for MotionPlanRequests
-    auto planner_config_name = QString::fromStdString(d.name).split('|');
-    if (planner_config_name.size() == 1)
+    // Use planner as default if no pipeline id is given
+    if (d.pipeline_id.empty())
     {
-      ui_->planning_pipeline_combo_box->addItem("<default>");
+      const std::string default_pipeline_item = "<default> - " + d.name;
+      ui_->planning_pipeline_combo_box->addItem(default_pipeline_item.c_str());
       default_planner_index = ui_->planning_pipeline_combo_box->count() - 1;
     }
     else
     {
-      ui_->planning_pipeline_combo_box->addItem(planner_config_name.at(0));
-      // Remove pipeline namespace from planner plugin name for cleaner display
-      planner_config_name.removeFirst();
-      const auto joined_string = planner_config_name.join("/");
-      d.name = joined_string.toStdString();
+      ui_->planning_pipeline_combo_box->addItem(d.pipeline_id.c_str());
     }
   }
 
@@ -441,6 +435,7 @@ void MotionPlanningFrame::populatePlannerDescription(const moveit_msgs::PlannerI
   if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
     for (const std::string& planner_id : desc.planner_ids)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(planner_id));
+
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
 
   // retrieve default planner config from parameter server

@@ -61,7 +61,7 @@ bool MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Reques
 
   // Select planning_pipeline to handle request
   planning_pipeline::PlanningPipelinePtr planning_pipeline;
-  if (!resolvePlanningPipeline(req.motion_plan_request.planner_id, planning_pipeline))
+  if (!resolvePlanningPipeline(req.motion_plan_request.pipeline_id, planning_pipeline))
   {
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return true;
