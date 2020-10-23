@@ -223,7 +223,8 @@ int main(int argc, char** argv)
     // Ignore default_planning_pipeline if there is no known entry in pipeline_names
     if (std::find(pipeline_names.begin(), pipeline_names.end(), default_planning_pipeline) == pipeline_names.end())
     {
-      ROS_WARN("MoveGroup launched with ~default_planning_pipeline '%s' not configured in ~/planning_pipelines");
+      ROS_WARN("MoveGroup launched with ~default_planning_pipeline '%s' not configured in ~/planning_pipelines",
+               default_planning_pipeline.c_str());
       default_planning_pipeline = "";  // reset invalid pipeline id
     }
   }
