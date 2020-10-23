@@ -202,38 +202,32 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
   return true;
 }
 
-bool move_group::MoveGroupCapability::resolvePlanningPipeline(const std::string& planner_id,
-                                                              planning_pipeline::PlanningPipelinePtr& planning_pipeline,
-                                                              std::string& resolved_planner_id) const
+bool move_group::MoveGroupCapability::resolvePlanningPipeline(
+    const std::string& pipeline_id, planning_pipeline::PlanningPipelinePtr& planning_pipeline) const
 {
-  const size_t delimiter_pos = planner_id.find_first_of("|");
-  if (delimiter_pos == std::string::npos)
+  if (pipeline_id.empty())
   {
     // Without specified planning pipeline we use the default
     planning_pipeline = context_->planning_pipeline_;
-    resolved_planner_id = planner_id;
   }
   else
   {
-    // We attempt to resolve the planning pipeline from the specified identifier and strip the pipeline name
-    // from planner_id
-    const auto& pipeline_name = planner_id.substr(0, delimiter_pos);
-    resolved_planner_id = delimiter_pos < planner_id.size() ? planner_id.substr(delimiter_pos + 1) : "";
+    // Attempt to get the planning pipeline for the specified identifier
     try
     {
-      planning_pipeline = context_->moveit_cpp_->getPlanningPipelines().at(pipeline_name);
-      ROS_INFO_NAMED(getName(), "Using planning pipeline '%s'", pipeline_name.c_str());
+      planning_pipeline = context_->moveit_cpp_->getPlanningPipelines().at(pipeline_id);
+      ROS_INFO_NAMED(getName(), "Using planning pipeline '%s'", pipeline_id.c_str());
     }
     catch (const std::out_of_range&)
     {
-      ROS_WARN_NAMED(getName(), "Couldn't find requested planning pipeline '%s'", pipeline_name.c_str());
+      ROS_WARN_NAMED(getName(), "Couldn't find requested planning pipeline '%s'", pipeline_id.c_str());
     }
   }
 
   // Fail if planning pipeline couldn't be loaded
   if (!planning_pipeline)
   {
-    ROS_ERROR_NAMED(getName(), "Failed to resolve planning pipeline from planner_id '%s'", planner_id.c_str());
+    ROS_ERROR_NAMED(getName(), "Failed to resolve planning pipeline from pipeline_id '%s'", pipeline_id.c_str());
     return false;
   }
 
