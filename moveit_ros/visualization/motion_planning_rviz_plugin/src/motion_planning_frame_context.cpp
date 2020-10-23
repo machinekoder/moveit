@@ -60,7 +60,7 @@ void MotionPlanningFrame::databaseConnectButtonClicked()
 void MotionPlanningFrame::planningPipelineIndexChanged(int index)
 {
   // Refresh planner interface description for selected pipeline
-  if (index >= 0 && index < planner_descriptions_.size())
+  if (index >= 0 && static_cast<size_t>(index) < planner_descriptions_.size())
   {
     // Set the selected pipeline id
     if (move_group_)
