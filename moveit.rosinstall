@@ -2,8 +2,8 @@
 # Used with wstool, users can download source of all packages of MoveIt.
 - git:
     local-name: moveit_msgs
-    uri: https://github.com/ros-planning/moveit_msgs.git
-    version: master
+    uri: https://github.com/henningkayser/moveit_msgs.git
+    version: pr-add_pipeline_id
 - git:
     local-name: moveit_resources
     uri: https://github.com/henningkayser/moveit_resources.git
