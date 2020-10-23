@@ -112,10 +112,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->allow_external_program, SIGNAL(toggled(bool)), this, SLOT(allowExternalProgramCommunication(bool)));
   connect(ui_->planning_pipeline_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningPipelineIndexChanged(int)));
-  connect(ui_->planning_pipeline_combo_box, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(planningPipelineIndexChanged(int)));
-  connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearScene()));
