@@ -191,7 +191,6 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>(ros::Duration(10.0));
-  std::shared_ptr<tf2_ros::TransformListener> tfl = std::make_shared<tf2_ros::TransformListener>(*tf_buffer, nh);
 
   // Load MoveItCpp parameters and check for valid planning pipeline configuration
   ros::NodeHandle pnh("~");
