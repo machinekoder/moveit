@@ -190,7 +190,6 @@ int main(int argc, char** argv)
   spinner.start();
   ros::NodeHandle nh;
 
-
   // Load MoveItCpp parameters and check for valid planning pipeline configuration
   ros::NodeHandle pnh("~");
   moveit_cpp::MoveItCpp::Options moveit_cpp_options(pnh);
