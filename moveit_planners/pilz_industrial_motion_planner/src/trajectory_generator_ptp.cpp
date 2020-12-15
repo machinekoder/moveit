@@ -227,7 +227,7 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_interface::Mot
       info.goal_joint_position[joint_constraint.joint_name] = joint_constraint.position;
     }
   }
-  // slove the ik
+  // solve the ik
   else
   {
     geometry_msgs::Point p =
@@ -243,7 +243,7 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_interface::Mot
     normalizeQuaternion(pose.orientation);
     tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(pose, pose_eigen);
     if (!computePoseIK(robot_model_, req.group_name, req.goal_constraints.at(0).position_constraints.at(0).link_name,
-                       pose_eigen, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))
+                       pose_eigen, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position, true, 0.5))
     {
       throw PtpNoIkSolutionForGoalPose("No IK solution for goal pose");
     }
