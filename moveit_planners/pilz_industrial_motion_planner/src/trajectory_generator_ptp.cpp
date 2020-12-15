@@ -227,7 +227,7 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_interface::Mot
       info.goal_joint_position[joint_constraint.joint_name] = joint_constraint.position;
     }
   }
-  // slove the ik
+  // solve the ik
   else
   {
     geometry_msgs::Point p =
