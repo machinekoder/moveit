@@ -14,6 +14,7 @@ endif()
 find_package(Boost REQUIRED system filesystem date_time program_options thread)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
+  moveit_msgs
   moveit_ros_planning
   actionlib
   roscpp
@@ -32,6 +33,7 @@ catkin_package(
   CATKIN_DEPENDS
     actionlib
     moveit_core
+    moveit_msgs
     moveit_ros_planning
     roscpp
     std_srvs
