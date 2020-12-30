@@ -88,7 +88,7 @@ bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotMode
   }
   else
   {
-    ROS_ERROR_STREAM("Inverse kinematics for pose \n" << pose.translation() << " has no solution.");
+    ROS_WARN_STREAM("Inverse kinematics for pose \n" << pose.translation() << " has no solution.");
     return false;
   }
 }
@@ -151,7 +151,7 @@ bool pilz_industrial_motion_planner::verifySampleJointLimits(
 
     if (!joint_limits.verifyVelocityLimit(pos.first, velocity_current))
     {
-      ROS_ERROR_STREAM("Joint velocity limit of " << pos.first << " violated. Set the velocity scaling factor lower!"
+      ROS_WARN_STREAM("Joint velocity limit of " << pos.first << " violated. Set the velocity scaling factor lower!"
                                                   << " Actual joint velocity is " << velocity_current
                                                   << ", while the limit is "
                                                   << joint_limits.getLimit(pos.first).max_velocity << ". ");
@@ -165,7 +165,7 @@ bool pilz_industrial_motion_planner::verifySampleJointLimits(
       if (joint_limits.getLimit(pos.first).has_acceleration_limits &&
           fabs(acceleration_current) > fabs(joint_limits.getLimit(pos.first).max_acceleration))
       {
-        ROS_ERROR_STREAM("Joint acceleration limit of "
+        ROS_WARN_STREAM("Joint acceleration limit of "
                          << pos.first << " violated. Set the acceleration scaling factor lower!"
                          << " Actual joint acceleration is " << acceleration_current << ", while the limit is "
                          << joint_limits.getLimit(pos.first).max_acceleration << ". ");
@@ -178,7 +178,7 @@ bool pilz_industrial_motion_planner::verifySampleJointLimits(
       if (joint_limits.getLimit(pos.first).has_deceleration_limits &&
           fabs(acceleration_current) > fabs(joint_limits.getLimit(pos.first).max_deceleration))
       {
-        ROS_ERROR_STREAM("Joint deceleration limit of "
+        ROS_WARN_STREAM("Joint deceleration limit of "
                          << pos.first << " violated. Set the acceleration scaling factor lower!"
                          << " Actual joint deceleration is " << acceleration_current << ", while the limit is "
                          << joint_limits.getLimit(pos.first).max_deceleration << ". ");
@@ -252,7 +252,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
         !verifySampleJointLimits(ik_solution_last, joint_velocity_last, ik_solution, sampling_time,
                                  duration_current_sample, joint_limits))
     {
-      ROS_ERROR_STREAM("Inverse kinematics solution at "
+      ROS_WARN_STREAM("Inverse kinematics solution at "
                        << *time_iter << "s violates the joint velocity/acceleration/deceleration limits.");
       error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
       joint_trajectory.points.clear();
@@ -333,7 +333,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
     if (!computePoseIK(robot_model, group_name, link_name, trajectory.points.at(i).pose, robot_model->getModelFrame(),
                        ik_solution_last, ik_solution, check_self_collision))
     {
-      ROS_ERROR("Failed to compute inverse kinematics solution for sampled "
+      ROS_WARN("Failed to compute inverse kinematics solution for sampled "
                 "Cartesian pose.");
       error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
       joint_trajectory.points.clear();
@@ -359,7 +359,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
       // overload generateJointTrajectory(...,
       // KDL::Trajectory, ...)
       // TODO: refactor to avoid code duplication.
-      ROS_ERROR_STREAM("Inverse kinematics solution of the " << i
+      ROS_WARN_STREAM("Inverse kinematics solution of the " << i
                                                              << "th sample violates the joint "
                                                                 "velocity/acceleration/deceleration limits.");
       error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
